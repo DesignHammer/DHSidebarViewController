@@ -55,7 +55,7 @@
 }
 
 - (id)initWithRootViewController:(UIViewController*)rootViewController sidebarViewController:(UIViewController*)sidebarViewController {
-    if ( (self = self = [super initWithNibName:nil bundle:nil]) ) {
+    if ( (self = [super initWithNibName:nil bundle:nil]) ) {
         self.threshold = 50.0f;
         self.panningEnabled = YES;
         self.overlayColor = [UIColor blackColor];
@@ -72,10 +72,10 @@
 
 - (void) loadView {
     [super loadView];
-    
-    DHSidebarLayoutView * layoutView = [[DHSidebarLayoutView alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
+
+    DHSidebarLayoutView * layoutView = [[DHSidebarLayoutView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.view = layoutView;
-    self.overlay.frame = [[UIScreen mainScreen] applicationFrame];
+    self.overlay.frame = [[UIScreen mainScreen] bounds];
 }
 
 #pragma mark - Rotation
@@ -88,7 +88,7 @@
     DHSidebarLayoutView* layoutView = (DHSidebarLayoutView*)self.view;
     layoutView.snapPosition = self.view.bounds.size.width - self.openOffset;
     self.overlay.frame = layoutView.bounds;
-    
+
     if ([self isOpen]) {
         [self openSidebar];
     }
@@ -113,22 +113,22 @@
         NSLog(@"Application tried to set a nil root view controller on target %@", self);
         return;
     }
-    
+
     // Assign new controller
     UIViewController * oldRootViewController = _rootViewController;
     [oldRootViewController willMoveToParentViewController:nil];
-    
+
     _rootViewController = rootViewController;
     UIViewController * newRootViewController = rootViewController;
-    
+
     [self addChildViewController:newRootViewController];
-    
+
     // Make sure the new root view has the same horizontal position as the old one
     newRootViewController.view.frame = CGRectMake(oldRootViewController.view.frame.origin.x, oldRootViewController.view.frame.origin.y, self.view.bounds.size.width, self.view.bounds.size.height);
-    
+
     // Set up tag for later retrieval
     newRootViewController.view.tag = kViewTagRoot;
-    
+
     // Add left side drop shadow
     newRootViewController.view.layer.shadowOffset = CGSizeMake(-3, 0);
     newRootViewController.view.layer.shadowOpacity = 0.3f;
@@ -140,7 +140,7 @@
     panGR.delegate = self;
     panGR.cancelsTouchesInView = NO;
     [newRootViewController.view addGestureRecognizer:panGR];
-    
+
     // Create overlay view
     if (self.overlay != nil) {
         [self.overlay removeFromSuperview];
@@ -156,8 +156,8 @@
         self.overlay.alpha = self.overlayOpacity;
         [self.rootViewController.view addSubview:self.overlay];
         [self.rootViewController.view addGestureRecognizer:self.tapGR];
-    }    
-    
+    }
+
     if (!oldRootViewController) {
         [self.view addSubview:_rootViewController.view];
         [newRootViewController didMoveToParentViewController:self];
@@ -167,7 +167,7 @@
                                   duration:1.0
                                    options:UIViewAnimationOptionTransitionNone
                                 animations:^{
-                                    
+
                                 }
                                 completion:^(BOOL completion) {
                                     [self.view addSubview:_rootViewController.view];
@@ -183,7 +183,7 @@
         NSLog(@"Application tried to set a nil sidebar view controller on target %@", self);
         return;
     }
-    
+
     UIViewController * oldSidebarViewController = _sidebarViewController;
     [oldSidebarViewController willMoveToParentViewController:nil];
 
@@ -193,7 +193,7 @@
     sidebarViewController.view.tag = kViewTagSidebar;
 
     [self addChildViewController:newSidebarViewController];
-    
+
     // Set gesture recognizer
     if (!oldSidebarViewController) {
         [self.view insertSubview:_sidebarViewController.view atIndex:0];
@@ -204,7 +204,7 @@
                                   duration:1.0
                                    options:UIViewAnimationOptionTransitionNone
                                 animations:^{
-                                    
+
                                 }
                                 completion:^(BOOL completion) {
                                     [self.view insertSubview:_sidebarViewController.view atIndex:0];
@@ -232,12 +232,12 @@
 - (void)openSidebar {
     DHSidebarLayoutView* layoutView = (DHSidebarLayoutView*)self.view;
     [layoutView setOffset:layoutView.snapPosition animated:YES];
-    
+
     if ([self.overlay superview] != self.rootViewController.view) {
         [self.rootViewController.view addSubview:self.overlay];
         [self.rootViewController.view addGestureRecognizer:self.tapGR];
     }
-    
+
     [UIView animateWithDuration:0.25
                      animations:^{
                          self.overlay.alpha = self.overlayOpacity;
@@ -251,7 +251,7 @@
 - (void)closeSidebar {
     DHSidebarLayoutView* layoutView = (DHSidebarLayoutView*)self.view;
     [layoutView setOffset:0 animated:YES];
-    
+
     [UIView animateWithDuration:0.25
                      animations:^{
                          self.overlay.alpha = 0;
@@ -292,17 +292,17 @@
 
             CGPoint p = [gr translationInView:self.view];
             float distance = p.x - _panOrigin.x;
-            
+
             if (self.panningEnabled) {
                 layoutView.offset = _panStartingOffset + distance;
             }
-            
+
             break;
         }
         case UIGestureRecognizerStateEnded:
         {
             DHSidebarLayoutView* layoutView = (DHSidebarLayoutView*)self.view;
-            
+
             CGPoint p = [gr translationInView:self.view];
             float distance = p.x - _panOrigin.x;
 
@@ -319,7 +319,7 @@
 
             [UIView setAnimationDelegate:self];
             [UIView commitAnimations];
-            
+
             break;
         }
         default:
